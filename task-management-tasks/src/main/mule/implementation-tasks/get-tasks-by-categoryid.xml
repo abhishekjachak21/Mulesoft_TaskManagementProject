@@ -1,0 +1,69 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+
+
+    <flow name="get:\tasks\category\(categoryId):task-management-abhishek-tasks-config">
+
+		<scatter-gather doc:name="Scatter-Gather" doc:id="7629f9c9-61de-4c9f-bd95-e8b77c671fc0" >
+			<route >
+				<logger level="INFO" doc:name="Logger" doc:id="49c9cf30-eba8-456c-9166-f4965e3597f3" message="1st flow start log"/>
+				<db:select doc:name="Select" doc:id="9dfc31f5-322a-46d6-a23f-b0e4e9760b69" config-ref="Database_Config_Sprint_Tasks">
+					<db:sql ><![CDATA[SELECT TaskID, TaskName, ProjectID 
+FROM Task 
+WHERE TaskID IN (SELECT TaskID FROM TaskCategory WHERE CategoryID = :categoryId)]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	categoryId: attributes.uriParams.categoryId
+}]]]></db:input-parameters>
+				</db:select>
+			</route>
+			<route >
+				<logger level="INFO" doc:name="Logger" doc:id="da7f9119-e34e-4325-96b5-e8ffba45ff9c" message="2nd flow start log"/>
+				<db:select doc:name="Select" doc:id="e26b135f-1f07-4687-91a2-703c2907de63" config-ref="Database_Config_Sprint_Tasks">
+					<db:sql ><![CDATA[SELECT TaskID, CategoryID 
+FROM TaskCategory 
+WHERE CategoryID = :categoryId]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	categoryId: attributes.uriParams.categoryId
+}]]]></db:input-parameters>
+				</db:select>
+			</route>
+			<route >
+				<logger level="INFO" doc:name="Logger" doc:id="33bc5e79-febd-4c2b-89d9-26aae28b22c9" message="3rd flow start log"/>
+				<db:select doc:name="Select" doc:id="14a14aa1-cac4-4c58-83c3-cbebeea60011" config-ref="Database_Config_Sprint_Tasks">
+					<db:sql ><![CDATA[SELECT CategoryID, CategoryName 
+FROM Category 
+WHERE CategoryID = :categoryId]]></db:sql>
+					<db:input-parameters ><![CDATA[#[{
+	categoryId: attributes.uriParams.categoryId
+}]]]></db:input-parameters>
+				</db:select>
+			</route>
+		</scatter-gather>
+		<ee:transform doc:name="Transform Message" doc:id="432b9187-732d-4b6c-a9cc-80ec3bed3c3a" >
+			<ee:message >
+				<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+    tasks: payload[0].payload,
+    taskCategories: payload[1].payload,
+    categories: payload[2].payload
+}
+]]></ee:set-payload>
+			</ee:message>
+		</ee:transform>
+
+       
+    </flow>
+	
+	
+	
+	
+	
+</mule>

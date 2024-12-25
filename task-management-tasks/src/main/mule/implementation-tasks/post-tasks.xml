@@ -1,0 +1,96 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd">
+	
+	
+	
+	<validation:config name="Validation_Config" doc:name="Validation Config" doc:id="1c92c29f-94ad-4f29-8794-15eea1c7be5d" />
+	<sub-flow name="Validations-Tasks" doc:id="6ea7eb55-4952-4a91-8f5b-67eace4b5e26" >
+		<validation:is-not-blank-string doc:name="task name cannot blank" doc:id="7385bb8a-6769-41b0-a323-d8e92bdfeb4b" value="#[payload.TaskName]" message="task name cannot be blank" />
+		<validation:is-not-null doc:name="projectId cannot null" doc:id="8565ea27-33d0-41e3-a555-da85e5cd93a2" value="#[payload.ProjectID]" message="Project Id cannot be null"/>
+	</sub-flow>
+    <flow name="post:\tasks\post:application\json:task-management-abhishek-tasks-config">
+        <logger level="INFO" doc:name="Logger" doc:id="e4324492-dea2-4a99-a17a-712a5ed265ab" message=" flow started" />
+		<flow-ref doc:name="Flow Reference" doc:id="2a48ce8d-e066-4665-abee-96fde07d83ad" name="Validations-Tasks" />
+		<db:insert doc:name="Insert" doc:id="5280b908-eeb9-4a45-baa5-dbdea31b61b1" config-ref="Database_Config_Sprint_Tasks">
+			<db:sql ><![CDATA[insert into Task(TaskID, TaskName, Description, DueDate, Priority, Status, ProjectID, UserID)
+values (:TaskID, :TaskName, :Description, :DueDate, :Priority, :Status, :ProjectID, :UserID)]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+  TaskID: payload.TaskID,
+  TaskName: payload.TaskName,
+  Description: payload.description,
+  DueDate: payload.DueDate,
+  Priority: payload.Priority,
+  Status: payload.Status,
+  ProjectID: payload.ProjectID,
+  UserID : payload.UserID
+}]]]></db:input-parameters>
+		</db:insert>
+		<logger level="INFO" doc:name="Logger" doc:id="d3b81ef6-bd60-4ae6-840b-2342c1b39ca5" message="validated the flow"/>
+		<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "POSTSUCCESS",
+  message: "Project added successfully"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+		<error-handler >
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="5c1f8362-5cd8-49e1-8bd7-95f84793e3ed" type="VALIDATION:BLANK_STRING">
+				<logger level="INFO" doc:name="Logger" doc:id="90cb8176-1639-4fa4-b085-1313764a1143" message="in the inside error propagate"/>
+				<ee:transform doc:name="Transform Message" doc:id="62cca41c-4ca8-4f94-80c3-53e3b9c2cdb1" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":"task name cannot be blank"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="ed37afe7-6b95-4440-87e7-fc5636b6dbac" type="VALIDATION:NULL">
+				<ee:transform doc:name="Transform Message" doc:id="207e7124-f467-49a4-b4a4-71a67770ed20" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":"ProjectId cannot be null"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+			
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="14323ca3-9c50-4171-8749-5e4edc2c0128" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="4cbbffe5-1417-4c72-b484-974aad229c73" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "ERROR": error.description splitBy "\n" map ((msg) -> {
+    "message": msg
+  })
+}
+ ]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+		</error-handler>
+    
+</flow>
+	
+	
+	
+	
+	</mule>

@@ -1,0 +1,58 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:validation="http://www.mulesoft.org/schema/mule/validation"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd 
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd">
+	
+	
+		<validation:config name="Validation_Config_update" doc:name="Validation Config" doc:id="2ae23fee-0cd5-4fa6-ada6-fed73af48830" />
+	
+	
+	
+    <flow name="put:\tasks\update\(TaskID):application\json:task-management-abhishek-tasks-config">
+
+        <logger level="INFO" doc:name="Logger" doc:id="f400a698-13d9-441e-8ccc-82a6badba5b0" message="update flow start"/>
+		<db:update doc:name="Update" doc:id="e479765f-4cdf-458b-baa5-e7a243ddbac1" config-ref="Database_Config_Sprint_Tasks">
+			<db:sql ><![CDATA[UPDATE Task
+SET TaskName = COALESCE(:TaskName, TaskName),
+    Description = COALESCE(:Description, Description),
+    DueDate = COALESCE(:DueDate, DueDate),
+    Priority = COALESCE(:Priority, Priority),
+    Status = COALESCE(:Status, Status),
+    ProjectID = COALESCE(:ProjectID, ProjectID),
+    UserID = COALESCE(:UserID, UserID)
+WHERE TaskID = :TaskID;
+]]></db:sql>
+			<db:input-parameters ><![CDATA[#[{
+  TaskID: attributes.uriParams.TaskID,
+  TaskName: payload.TaskName,
+  Description: payload.description,
+  DueDate: payload.DueDate,
+  Priority: payload.Priority,
+  Status: payload.Status,
+  ProjectID: payload.ProjectID,
+  UserID : payload.UserID
+  }]]]></db:input-parameters>
+		</db:update>
+		<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "UPDATESUCCESS",
+  message: "Task updated successfully"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+	
+	
+	
+	
+	</mule>

@@ -1,0 +1,13 @@
+%dw 2.0
+
+type auto_6ea7eb55_4952_4a91_8f5b_67eace4b5e26_Input_Payload = {
+  dueDate: String, 
+  description?: String, 
+  taskName: String, 
+  priority: "high" | "low" | "medium", 
+  projectId?: Number, 
+  taskId: Number, 
+  status: "pending" | "In Progress" | "completed", 
+  _?: Any
+}
+
