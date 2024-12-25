@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:snowflake="http://www.mulesoft.org/schema/mule/snowflake"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db" xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/snowflake http://www.mulesoft.org/schema/mule/snowflake/current/mule-snowflake.xsd">
+	
+	
+	 <flow name="put:\projects\update\(projectId):application\json:task-management-abhishek-projetcs-config">
+        <snowflake:update doc:name="Update" doc:id="99b0c849-07ab-440e-81c7-bb5ad291a89c" config-ref="Snowflake_Config2">
+			<snowflake:sql ><![CDATA[UPDATE Project
+SET 
+    ProjectName = COALESCE(:ProjectName, ProjectName),  
+    Description = COALESCE(:Description, Description),
+    StartDate = COALESCE(:StartDate, StartDate),
+    EndDate = COALESCE(:EndDate, EndDate),
+    UserID = COALESCE(:UserID, UserID)
+WHERE ProjectID = :ProjectID;
+]]></snowflake:sql>
+			<snowflake:input-parameters ><![CDATA[#[{
+	ProjectID : attributes.uriParams.projectId,
+	ProjectName: payload.ProjectName,
+	Description: payload.Description,
+	StartDate: payload.StartDate,
+	EndDate: payload.EndDate,
+	UserID: payload.UserID
+}]]]></snowflake:input-parameters>
+		</snowflake:update>
+		<logger level="INFO" doc:name="Logger" doc:id="a7786b14-83f2-4bf1-bc97-611e366682c6" message="update flow started"/>
+		<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "UPDATESUCCESS",
+  message: "Project updated successfully"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+    </flow>
+   
+	
+	
+	
+	
+	</mule>

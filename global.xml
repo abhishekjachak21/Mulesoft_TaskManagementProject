@@ -1,0 +1,30 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:snowflake="http://www.mulesoft.org/schema/mule/snowflake"
+	xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:http="http://www.mulesoft.org/schema/mule/http" xmlns="http://www.mulesoft.org/schema/mule/core"
+	xmlns:doc="http://www.mulesoft.org/schema/mule/documentation"
+	xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd 
+http://www.mulesoft.org/schema/mule/http http://www.mulesoft.org/schema/mule/http/current/mule-http.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/snowflake http://www.mulesoft.org/schema/mule/snowflake/current/mule-snowflake.xsd">
+	
+	
+	   <http:listener-config name="task-management-abhishek-projetcs-httpListenerConfig">
+        <http:listener-connection host="0.0.0.0" port="${http.port}" />
+    </http:listener-config>
+	
+ <db:config name="Database_Config_Sprint" doc:name="Database Config" doc:id="6321c53b-eca8-4723-aee1-78e8f5e8c65d" >
+		<db:my-sql-connection host="${db.host}" port="${db.port}" user="${db.user}" database="${db.database}" />
+	</db:config>
+	
+	
+	
+	<configuration-properties doc:name="Configuration properties" doc:id="a4b7e307-8225-4a14-aca6-fc8c451b2570" file="dev.yaml" />
+	
+	<snowflake:snowflake-config name="Snowflake_Config2" doc:name="Snowflake Config" doc:id="7d76cab9-be8e-4e86-a0a0-1feb7ac65641" >
+		<snowflake:snowflake-connection accountName="fi66610.central-india.azure" warehouse="COMPUTE_WH" database="TASKMANAGEMENT" schema="PUBLIC" user="abhishekjachak21" password="@Bhishek1234" role="ACCOUNTADMIN" />
+	</snowflake:snowflake-config>
+	
+	
+</mule>
