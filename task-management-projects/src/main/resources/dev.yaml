@@ -1,0 +1,8 @@
+http:
+  port: "8081"
+
+db: 
+  host: "34.121.212.45"
+  port: "3306"
+  user: "root"
+  database: "TaskManagement"    

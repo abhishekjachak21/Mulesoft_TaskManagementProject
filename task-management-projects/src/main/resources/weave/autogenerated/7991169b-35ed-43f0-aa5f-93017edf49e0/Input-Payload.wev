@@ -1,0 +1,11 @@
+%dw 2.0
+
+type auto_7991169b_35ed_43f0_aa5f_93017edf49e0_Input_Payload = {|
+  StartDate?: String, 
+  Description?: String, 
+  ProjectName?: String, 
+  UserID?: String, 
+  ProjectID?: String, 
+  EndDate?: String
+|}
+

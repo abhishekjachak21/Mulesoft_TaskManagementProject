@@ -1,0 +1,115 @@
+<?xml version="1.0" encoding="UTF-8"?>
+
+<mule xmlns:snowflake="http://www.mulesoft.org/schema/mule/snowflake"
+	xmlns:validation="http://www.mulesoft.org/schema/mule/validation" xmlns:db="http://www.mulesoft.org/schema/mule/db"
+	xmlns:ee="http://www.mulesoft.org/schema/mule/ee/core"
+	xmlns="http://www.mulesoft.org/schema/mule/core" xmlns:doc="http://www.mulesoft.org/schema/mule/documentation" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xsi:schemaLocation="
+http://www.mulesoft.org/schema/mule/ee/core http://www.mulesoft.org/schema/mule/ee/core/current/mule-ee.xsd http://www.mulesoft.org/schema/mule/core http://www.mulesoft.org/schema/mule/core/current/mule.xsd
+http://www.mulesoft.org/schema/mule/db http://www.mulesoft.org/schema/mule/db/current/mule-db.xsd
+http://www.mulesoft.org/schema/mule/validation http://www.mulesoft.org/schema/mule/validation/current/mule-validation.xsd
+http://www.mulesoft.org/schema/mule/snowflake http://www.mulesoft.org/schema/mule/snowflake/current/mule-snowflake.xsd">
+	
+	
+	
+	
+	<sub-flow name="validation-for-post-project" doc:id="7991169b-35ed-43f0-aa5f-93017edf49e0" >
+		<validation:all doc:name="All" doc:id="f6752819-4211-4c63-aaf0-1dc00b2efc27">
+			<validation:is-not-null doc:name="Project ID cannot be null" doc:id="77d906c7-d3d0-42ec-820b-e34f2bd3da44" value="#[payload.ProjectID]" message="project id cannot be null" />
+			<validation:is-not-null doc:name="User Id cannot be null" doc:id="d57d1b24-eb88-4cc9-b26a-5d4a2e724530" value="#[payload.UserID]" message="user id cannot be null" />
+			<validation:is-not-blank-string doc:name="Project Name cannot be blank" doc:id="54e8e95a-6904-4fcf-aa72-17a5455d2736" value="#[payload.ProjectName]" message="Project Name cannot be blank" />
+		</validation:all>
+	</sub-flow>
+	
+	<flow name="post:\projects\post:application\json:task-management-abhishek-projetcs-config">
+		
+		
+		
+		<flow-ref doc:name="Flow Reference" doc:id="2a0b5b16-6f9b-4aa0-b26b-f2d2f932baca" name="validation-for-post-project" />
+		<snowflake:insert doc:name="Insert" doc:id="5387f972-c057-4fde-810f-56ee6f599c44" config-ref="Snowflake_Config2">
+			<snowflake:sql ><![CDATA[INSERT INTO Project (ProjectID, ProjectName, Description, StartDate, EndDate, UserID) 
+VALUES (:ProjectID, :ProjectName, :Description, :StartDate, :EndDate, :UserID);]]></snowflake:sql>
+			<snowflake:input-parameters ><![CDATA[#[payload]]]></snowflake:input-parameters>
+		</snowflake:insert>
+		<ee:transform doc:name="Transform Message">
+            <ee:message>
+                <ee:set-payload><![CDATA[%dw 2.0
+output application/json
+---
+{
+  code: "POSTSUCCESS",
+  message: "Project added successfully"
+} as Object {encoding: "UTF-8", mediaType: "application/json"}]]></ee:set-payload>
+            </ee:message>
+        </ee:transform>
+	
+	
+	
+	
+	  <error-handler>
+	  
+	      
+          <on-error-propagate enableNotifications="true" logException="true" doc:name="-On Error Propagate" doc:id="33fbadcb-efaa-4e92-b675-8316f28594a3" type="VALIDATION:NULL">
+				<ee:transform doc:name="Transform Message" doc:id="a1f23021-7325-49ac-8e7b-c9324b1d8b00" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":"ProjectID Cannot be null"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="ec52c893-878b-42ad-a053-c9311c3b7b65" type="VALIDATION:BLANK_STRING">
+				<ee:transform doc:name="Transform Message" doc:id="28db6e36-50f5-48b5-a742-50ba6d45d21d" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":"Project Name cannot be blank"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+			
+			
+			
+			
+			
+			<on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="efc58f7e-edb2-4935-9f84-93cab2ca37f7" type="VALIDATION:NULL">
+				<ee:transform doc:name="Transform Message" doc:id="97eeb2ca-874b-453a-b4ca-4f5dbe04de9e" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+	"message":"UserID cannot be null"
+}]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+	  
+	  <on-error-propagate enableNotifications="true" logException="true" doc:name="On Error Propagate" doc:id="cf1889e9-46a0-4498-af32-c4ad5c0e2c35" type="ANY">
+				<ee:transform doc:name="Transform Message" doc:id="222a8eb4-080e-4e01-9bf8-7a7990efd7e2" >
+					<ee:message >
+						<ee:set-payload ><![CDATA[%dw 2.0
+output application/json
+---
+{
+  "ERROR": error.description splitBy "\n" map ((msg) -> {
+    "message": msg
+  })
+}
+ ]]></ee:set-payload>
+					</ee:message>
+				</ee:transform>
+			</on-error-propagate>
+	  
+	</error-handler>
+	    
+</flow>
+	
+
+	
+	</mule>
